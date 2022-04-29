@@ -281,7 +281,7 @@ void make_child_nodes(Node *node, int choice){
     //cout << "checking empty_spot 0: "<< empty_spot[0] << endl;
     //cout << "checking empty_spot 1: "<< empty_spot[1] << endl;
     num_nodes_explored++;
-    cout << "Number of nodes explored: "<< num_nodes_explored << endl;
+    //cout << "Number of nodes explored: "<< num_nodes_explored << endl;
     if(y - 1 >= 0){
         //cout << "above can move" << endl;
         swap(y - 1, x, empty_spot, node, choice);
@@ -321,13 +321,12 @@ void output_solution(Node *node){
         //outputs the board from the start state to the goal state
         for(int i = solution.size() - 1; i >= 0; i--){
             solution[i]->board.output_board();
-            cout << "Cost of state: " << solution[i]->cost << endl;
-            cout << "eucledian_heu of state: " << solution[i]->eucledian_heu << endl;
+            //cout << "Cost of state: " << solution[i]->cost << endl;
+            //cout << "eucledian_heu of state: " << solution[i]->eucledian_heu << endl;
         }
     }
 }
 void find_solution(create_board board, int choice){
-    bool found = false;
     Node *temp;
     vector<Node*> frontier;
     vector<Node*> explored;
@@ -339,7 +338,7 @@ void find_solution(create_board board, int choice){
 
     frontier.push_back(root);
     //cout << "before frontier loop" << endl;
-    while(!found){
+    while(1){
         if(frontier.empty()){
             cout << "No solution found" << endl;
             break;
@@ -365,7 +364,6 @@ void find_solution(create_board board, int choice){
         //cout << "removed node that we will explore" << endl;
         if(temp->board.test_finish()){
             cout << "found finish" << endl;
-            found = true;
             break;
         }
         //cout << "after check if the node removed is the final state" << endl;
@@ -385,6 +383,9 @@ void find_solution(create_board board, int choice){
             if(unique)
                 frontier.push_back(temp->child[i]);            
         }
+        //check max queue size
+        if(frontier.size() > max_queue_size)
+            max_queue_size = frontier.size();
         
 
     }
@@ -399,11 +400,13 @@ int main()
     vector<int> do_able {0,1,2,4,5,3,7,8,6};
     vector<int> oh_boy {8,7,1,6,0,2,5,4,3};
     vector<int> impossible {1,2,3,4,5,6,8,7,0};
-    int alg_choice = 1;
+    int alg_choice = 2;
     create_board test(3, do_able);
     cout << "before output" << endl;
     //test.output_board();
     find_solution(test, alg_choice);
    // cout << test.get_size() << endl;
     cout << "after output" << endl;
+    cout << "Number of explored nodes: " << num_nodes_explored << endl;
+    cout << "Most in frontier at once: " << max_queue_size << endl;
 }
