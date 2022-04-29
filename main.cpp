@@ -131,7 +131,7 @@ class create_board
         }
         vector<int> get_correct_spot(int target){
             vector<int> result;
-            for(int i = 0; i <goal_state.size(); i++){
+            for(int i = 0; i < goal_state.size(); i++){
                 for(int j = 0; j < goal_state.size(); j++){
                     if(goal_state[i][j] == target){
                         result.push_back(i);
@@ -147,15 +147,15 @@ class create_board
         }
         //calculates the hurristic value of the board
         double calculate_euclidean_heuristic(){
-            int cnt = 0;
+            int cnt = 1;
             double result = 0;
             vector<int> correct_spot;
             for(int i = 0; i <board.size(); i++){
                 for(int j = 0; j < board.size(); j++){
                     if(cnt >= 9)
-                        continue;
+                        cnt = 0;
                     if(board[i][j] != cnt){
-                        correct_spot = get_correct_spot(cnt);
+                        correct_spot = get_correct_spot(board[i][j]);
                         result += pow(pow(abs(correct_spot[0] - i),2) + pow(abs(correct_spot[1] - j), 2), 0.5);
                         //result += abs(correct_spot[0] - i) + abs(correct_spot[1] - j);
                     }
@@ -322,6 +322,7 @@ void output_solution(Node *node){
         for(int i = solution.size() - 1; i >= 0; i--){
             solution[i]->board.output_board();
             cout << "Cost of state: " << solution[i]->cost << endl;
+            cout << "eucledian_heu of state: " << solution[i]->eucledian_heu << endl;
         }
     }
 }
@@ -399,7 +400,7 @@ int main()
     vector<int> oh_boy {8,7,1,6,0,2,5,4,3};
     vector<int> impossible {1,2,3,4,5,6,8,7,0};
     int alg_choice = 1;
-    create_board test(3, oh_boy);
+    create_board test(3, do_able);
     cout << "before output" << endl;
     //test.output_board();
     find_solution(test, alg_choice);
