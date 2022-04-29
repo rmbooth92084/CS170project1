@@ -14,6 +14,7 @@ class create_board
     private:
         vector<vector<int>> board;
         vector<vector<int>> goal_state;
+        vector<int> user_input;
     public:
         //constructor
         create_board(){
@@ -29,7 +30,7 @@ class create_board
         create_board(int size, vector<int> input){
             //cout << "making board" << endl;
             vector<int> temp;
-
+            user_input = input;
             for(int i = 0; i < size; i++){
                 temp.push_back(0);
             }
@@ -51,6 +52,9 @@ class create_board
         }
         vector<vector<int>> get_goal(){
             return goal_state;
+        }
+        vector<int> get_order(){
+            return user_input;
         }
         //creates the unsolved board as well as the final state board
         void set_board(vector<int> input){
@@ -86,7 +90,7 @@ class create_board
         //outputs the unsolved board
         //for debugging
         void output_board(){
-            cout << "Unsolved board: " << endl;
+            cout << "-----" << endl;
             for(int i = 0; i < board.size(); i++){
                 for(int j = 0; j < board.size(); j++){
                     cout << board[i][j] << " ";
@@ -152,8 +156,8 @@ class create_board
                         continue;
                     if(board[i][j] != cnt){
                         correct_spot = get_correct_spot(cnt);
-                        //result += pow(pow(abs(correct_spot[0] - i),2) + pow(abs(correct_spot[1] - j), 2), 0.5);
-                        result += abs(correct_spot[0] - i) + abs(correct_spot[1] - j);
+                        result += pow(pow(abs(correct_spot[0] - i),2) + pow(abs(correct_spot[1] - j), 2), 0.5);
+                        //result += abs(correct_spot[0] - i) + abs(correct_spot[1] - j);
                     }
                     cnt++;
                 }
@@ -198,20 +202,27 @@ Node *new_node(vector<int> board, Node * parent, int alg_choice)
     temp->total_edge_distance = parent->total_edge_distance + 1;
     if(alg_choice == 1)
         temp->cost = temp->total_edge_distance + temp->mispalced_heu;
-    else if(alg_choice == 1)
+    else if(alg_choice == 2)
         temp->cost = temp->total_edge_distance + temp->eucledian_heu;
     else
         temp->cost = temp->total_edge_distance;
     return temp;
 }
 //function for helping with creating the root node
-Node *new_root_node(create_board board)
+Node *new_root_node(create_board board, int alg_choice)
 {
     Node *temp = new Node;
     temp->board = board;
     temp->parent = nullptr;
     temp->total_edge_distance = 0;
-    temp->cost = 0;
+    temp->mispalced_heu = temp->board.calculate_misplaced_heuristic();
+    temp->eucledian_heu = temp->board.calculate_euclidean_heuristic();
+    if(alg_choice == 1)
+        temp->cost = temp->total_edge_distance + temp->mispalced_heu;
+    else if(alg_choice == 2)
+        temp->cost = temp->total_edge_distance + temp->eucledian_heu;
+    else
+        temp->cost = temp->total_edge_distance;
     return temp;
 }
 //helper funtion to make_nodes by making a move in the game
@@ -269,8 +280,8 @@ void make_child_nodes(Node *node, int choice){
     //int empty_conver = x + (y * board.get_size());
     //cout << "checking empty_spot 0: "<< empty_spot[0] << endl;
     //cout << "checking empty_spot 1: "<< empty_spot[1] << endl;
-    //num_nodes_explored++;
-    //cout << "Number of nodes explored: "<< num_nodes_explored << endl;
+    num_nodes_explored++;
+    cout << "Number of nodes explored: "<< num_nodes_explored << endl;
     if(y - 1 >= 0){
         //cout << "above can move" << endl;
         swap(y - 1, x, empty_spot, node, choice);
@@ -310,67 +321,68 @@ void output_solution(Node *node){
         //outputs the board from the start state to the goal state
         for(int i = solution.size() - 1; i >= 0; i--){
             solution[i]->board.output_board();
+            cout << "Cost of state: " << solution[i]->cost << endl;
         }
     }
 }
 void find_solution(create_board board, int choice){
     bool found = false;
-    int least = INT_MAX;
-    int least_pos = 0;
     Node *temp;
     vector<Node*> frontier;
     vector<Node*> explored;
     vector<Node*>::iterator it;
-    Node *root = new_root_node(board);
+    Node *root = new_root_node(board, choice);
+
+    int least_cost = INT_MAX;
+    int pos = 0;
 
     frontier.push_back(root);
     //cout << "before frontier loop" << endl;
     while(!found){
-        
-        //finds the one node with the least cost in the frontier
-        for(int i = 0; i < frontier.size(); i++){
-            if(frontier[i]->cost < least){
-                least = frontier[i]->cost;
-                least_pos = i;
+        if(frontier.empty()){
+            cout << "No solution found" << endl;
+            break;
+        }
+        //searches for the final state as well as only picking it if
+        //it has the least cost in the frontier
+        for(int j = 0; j < frontier.size(); j++){
+            if(frontier[j]->cost < least_cost){
+                pos = j;
+                least_cost = frontier[j]->cost;
             }
+            //moves postion to the final state leaf if it has the same cost or lower
+            //compared to the current least cost
+            if(frontier[j]->board.test_finish() && frontier[j]->cost <= least_cost)
+                pos = j;
+
         }
        // cout << "after first loop for deciding shortest edge" << endl;
-        temp = frontier[least_pos];
-        it = frontier.begin() + least_pos;
-        frontier.erase(it);
+        temp = frontier[pos];
+        it = frontier.begin() + pos;
         explored.push_back(temp);
+        frontier.erase(it);
         //cout << "removed node that we will explore" << endl;
         if(temp->board.test_finish()){
-            found = true;
             cout << "found finish" << endl;
-            continue;
+            found = true;
+            break;
         }
         //cout << "after check if the node removed is the final state" << endl;
         make_child_nodes(temp, choice);
         //cout << "after making child nodes" << endl;
         //pushes all the childen of the removed node into the frontier
+        //only adds child to frontier if it's a unique state
+        bool unique;
         for(int i = 0; i < temp->child.size(); i ++){
-            frontier.push_back(temp->child[i]);
-        }
-        //searches for the final state as well as only picking it if
-        //it has the least cost in the frontier
-        int least_cost = INT_MAX;
-        int pos;
-        for(int j = 0; j < frontier.size(); j++){
-            if(frontier[j]->cost < least_cost){
-                pos = j;
-                least_cost = frontier[j]->cost;
-                /*
-                if(max_queue_size < frontier.size()){
-                    max_queue_size = frontier.size();
-                }*/
+            unique = true;
+            for(int k = 0; k < explored.size(); k++){
+                //if the order of the board is the same as one in the explored set the not unique
+                if(temp->child[i]->board.get_order() == explored[k]->board.get_order()){
+                    unique = false;
+                }
             }
-            if(j + 1  >= frontier.size() && frontier[j]->board.test_finish()){
-                temp = frontier[j];
-                found = true;
-                temp = frontier[j];
-                //it = frontier.begin() + j;
-            }
+            if(unique)
+                frontier.push_back(temp->child[i]);            
         }
         
 
