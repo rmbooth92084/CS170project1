@@ -1,5 +1,6 @@
 /*
     Created by Raymond Booth 862152152
+    github repo: https://github.com/rmbooth92084/CS170project1
 */
 #include <iostream>
 #include <vector>
@@ -248,10 +249,8 @@ vector<int> reorder_board(vector<int> order, int target){
 }
 //helper funtion for make_child_nodes
 void swap(int y, int x,  vector<int> empty_spot, Node *node, int choice){
-   // cout << "in make_child_nodes" << endl;
+   //cout << "in make_child_nodes" << endl;
     create_board board = node->board;
-    //board.output_board();
-    //vector<int> num_order = board.get_num_order();
     vector<int> num_switch;
     vector<int> num_order = board.get_num_order();
     int temp1, temp2;
@@ -308,11 +307,12 @@ void make_child_nodes(Node *node, int choice){
     }
 
 }
+//helper funtion that outputs the solution
 void output_solution(Node *node){
     bool finished = false;
     vector<Node*> solution;
     while(!finished){
-        cout << "Output loop" << endl;
+        //cout << "Output loop" << endl;
         //node->board.output_board();
         solution.push_back(node);
         if(node->parent == nullptr)
@@ -325,13 +325,14 @@ void output_solution(Node *node){
         //outputs the board from the start state to the goal state
         for(int i = solution.size() - 1; i >= 0; i--){
             solution[i]->board.output_board();
-            cout << "g(n): " << solution[i]->total_edge_distance << endl;
+            //cout << "g(n): " << solution[i]->total_edge_distance << endl;
             //cout << "Cost of state: " << solution[i]->cost << endl;
             //cout << "eucledian_heu of state: " << solution[i]->eucledian_heu << endl;
         }
         depth = solution.size();
     }
 }
+//main funtion that finds the solution to a board accorting to the algorithm chosen
 void find_solution(create_board board, int choice){
     Node *temp;
     vector<Node*> frontier;
@@ -342,9 +343,11 @@ void find_solution(create_board board, int choice){
     int least_cost = INT_MAX;
     int pos = 0;
 
+    double cost;
     frontier.push_back(root);
     //cout << "before frontier loop" << endl;
     while(1){
+        least_cost = INT_MAX;
         if(frontier.empty()){
             cout << "No solution found" << endl;
             break;
@@ -352,21 +355,28 @@ void find_solution(create_board board, int choice){
         //searches for the final state as well as only picking it if
         //it has the least cost in the frontier
         for(int j = 0; j < frontier.size(); j++){
-            if(frontier[j]->cost < least_cost){
+            cost = frontier[j]->cost;
+           //cout << "The cost is " << cost << endl;
+            if(cost < least_cost){
                 pos = j;
-                least_cost = frontier[j]->cost;
+                least_cost = cost;
             }
             //moves postion to the final state leaf if it has the same cost or lower
             //compared to the current least cost
-            if(frontier[j]->board.test_finish() && frontier[j]->cost <= least_cost){
+           //cout << "now it's  " << least_cost << endl;
+            if(frontier[j]->board.test_finish() && cost <= least_cost){
                 pos = j;
-                least_cost = frontier[j]->cost;
+                least_cost = cost;
             }
 
         }
-
+        
        // cout << "after first loop for deciding shortest edge" << endl;
         temp = frontier[pos];
+
+        //cout << "Node to remove and explore: " << endl;
+        //temp->board.output_board();
+
         it = frontier.begin() + pos;
         explored.push_back(temp);
         frontier.erase(it);
@@ -389,17 +399,25 @@ void find_solution(create_board board, int choice){
                     unique = false;
                 }
             }
-            if(unique)
-                frontier.push_back(temp->child[i]);            
+            if(unique){
+                frontier.push_back(temp->child[i]);
+                //temp->child[i]->board.output_board();
+                //cout << "cost" <<temp->child[i]->cost << endl;
+                //cout << "Code being pushed into the frontier: " << endl;
+               //temp->child[i]->board.output_board();
+            }
         }
         //check max queue size
-        if(frontier.size() > max_queue_size)
+        if(frontier.size() > max_queue_size){
             max_queue_size = frontier.size();
+            ///cout << "current max queue " << max_queue_size << endl;
+        }
         
 
     }
     output_solution(temp);
 }
+//function for getting user input to solver their puzzle
 void ui(){
     //default puzzle is the one for part 2 of what needs to be submitted to ilearn
     vector<int> main_one {1,0,3,4,2,6,7,5,8};
@@ -462,14 +480,14 @@ int main()
     vector<int> impossible {1,2,3,4,5,6,8,7,0};
 
     vector<int> main_one {1,0,3,4,2,6,7,5,8};
-    int alg_choice = 0;
+    /*int alg_choice = 2;
 
-    create_board test(3, very_easy);
+    create_board test(3, main_one);
     cout << "before output" << endl;
     find_solution(test, alg_choice);
     cout << "after output" << endl;
-
-    //ui();
+    */
+    ui();
     cout << "To solve this problem the search algorithm expaned " << num_nodes_explored << " nodes." << endl;
     cout << "The max number of nodes in the queue at any one time was " << max_queue_size << " nodes." << endl;
     cout << "The depth of the goal state was " << depth << " nodes." << endl;
