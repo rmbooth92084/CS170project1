@@ -1,3 +1,6 @@
+/*
+    Created by Raymond Booth 862152152
+*/
 #include <iostream>
 #include <vector>
 #include <string>
@@ -9,6 +12,7 @@ using namespace std;
  */
 unsigned long int max_queue_size = 0;
 unsigned long int num_nodes_explored = 0;
+unsigned long int depth = 0;
 class create_board
 {
     private:
@@ -321,9 +325,11 @@ void output_solution(Node *node){
         //outputs the board from the start state to the goal state
         for(int i = solution.size() - 1; i >= 0; i--){
             solution[i]->board.output_board();
+            cout << "g(n): " << solution[i]->total_edge_distance << endl;
             //cout << "Cost of state: " << solution[i]->cost << endl;
             //cout << "eucledian_heu of state: " << solution[i]->eucledian_heu << endl;
         }
+        depth = solution.size();
     }
 }
 void find_solution(create_board board, int choice){
@@ -352,10 +358,13 @@ void find_solution(create_board board, int choice){
             }
             //moves postion to the final state leaf if it has the same cost or lower
             //compared to the current least cost
-            if(frontier[j]->board.test_finish() && frontier[j]->cost <= least_cost)
+            if(frontier[j]->board.test_finish() && frontier[j]->cost <= least_cost){
                 pos = j;
+                least_cost = frontier[j]->cost;
+            }
 
         }
+
        // cout << "after first loop for deciding shortest edge" << endl;
         temp = frontier[pos];
         it = frontier.begin() + pos;
@@ -391,6 +400,57 @@ void find_solution(create_board board, int choice){
     }
     output_solution(temp);
 }
+void ui(){
+    //default puzzle is the one for part 2 of what needs to be submitted to ilearn
+    vector<int> main_one {1,0,3,4,2,6,7,5,8};
+    vector<int> user_board;
+    vector<int> temp_board;
+    int user_input;
+    int next_input;
+    int temp;
+    int alg_choice;
+    cout << "Welcom to rboot005 8 puzzle solver." << endl;
+    cout << "Type 1 to use a default puzzle or 2 to enter you own puzzle." << endl;
+
+    cin >> user_input;
+
+        if(user_input == 1){
+            temp_board = main_one;
+            cout << "Now pick an algorithm you would like to use to search for the solution" << endl;
+            cout << "Input 0 for Uniform Cost Search" << endl;
+            cout << "Input 1 for A* with Mispalced Tile heuristic" << endl;
+            cout << "Input 2 for A* with Eucledian distance heuristic" << endl;
+            cin >> alg_choice;
+            create_board board(pow(temp_board.size(),0.5), main_one);
+            find_solution(board, alg_choice);
+        }
+        else if(user_input == 2){
+            cout << "Please enter you puzzle. Note the first 3 will be the top 3" << endl;
+            cout << "in the order you put them in and the next 3 will be the same for" << endl;
+            cout << "next row and so on. Input 0 to indicate the blank space." << endl;
+            cout << "Example input: 123456780" << endl;
+            cin >> next_input;
+            while(next_input != 0){
+                temp = next_input % 10;
+                user_board.push_back(temp);
+                next_input /= 10;
+            }
+            //user input it recived backwards so need to flip it
+            for (int i = user_board.size() - 1; i >= 0 ; i--){
+                temp_board.push_back(user_board[i]);
+            }
+            cout << "Now pick an algorithm you would like to use to search for the solution" << endl;
+            cout << "Input 0 for Uniform Cost Search" << endl;
+            cout << "Input 1 for A* with Mispalced Tile heuristic" << endl;
+            cout << "Input 2 for A* with Eucledian distance heuristic" << endl;
+            cin >> alg_choice;
+            create_board board(pow(temp_board.size(),0.5), temp_board);
+            find_solution(board, alg_choice);
+        }
+        else
+            cout << "Invalid input" << endl;
+    
+}
 int main()
 {
     //test boards with 0 indicating the space
@@ -400,13 +460,18 @@ int main()
     vector<int> do_able {0,1,2,4,5,3,7,8,6};
     vector<int> oh_boy {8,7,1,6,0,2,5,4,3};
     vector<int> impossible {1,2,3,4,5,6,8,7,0};
-    int alg_choice = 2;
-    create_board test(3, do_able);
+
+    vector<int> main_one {1,0,3,4,2,6,7,5,8};
+    int alg_choice = 0;
+
+    create_board test(3, very_easy);
     cout << "before output" << endl;
-    //test.output_board();
     find_solution(test, alg_choice);
-   // cout << test.get_size() << endl;
     cout << "after output" << endl;
-    cout << "Number of explored nodes: " << num_nodes_explored << endl;
-    cout << "Most in frontier at once: " << max_queue_size << endl;
+
+    //ui();
+    cout << "To solve this problem the search algorithm expaned " << num_nodes_explored << " nodes." << endl;
+    cout << "The max number of nodes in the queue at any one time was " << max_queue_size << " nodes." << endl;
+    cout << "The depth of the goal state was " << depth << " nodes." << endl;
+    
 }
