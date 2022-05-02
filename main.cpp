@@ -248,6 +248,7 @@ vector<int> reorder_board(vector<int> order, int target){
     return result;
 }
 //helper funtion for make_child_nodes
+//does the swaping of the empty space and the target number
 void swap(int y, int x,  vector<int> empty_spot, Node *node, int choice){
    //cout << "in make_child_nodes" << endl;
     create_board board = node->board;
@@ -267,6 +268,8 @@ void swap(int y, int x,  vector<int> empty_spot, Node *node, int choice){
     (node->child).push_back(new_node(num_order, node, choice));
 }
 //helper funtion for making nodes
+//check all possible movement spaces from an open space
+//and make nodes accordingly with the help of swap
 void make_child_nodes(Node *node, int choice){
     //cout << "in make_child_nodes" << endl;
     create_board board = node->board;
@@ -410,7 +413,8 @@ void find_solution(create_board board, int choice){
         //check max queue size
         if(frontier.size() > max_queue_size){
             max_queue_size = frontier.size();
-            ///cout << "current max queue " << max_queue_size << endl;
+            //cout << "current max queue " << max_queue_size << endl;
+            //cout << "explored nodes " << num_nodes_explored << endl;  
         }
         
 
@@ -427,7 +431,7 @@ void ui(){
     int next_input;
     int temp;
     int alg_choice;
-    cout << "Welcom to rboot005 8 puzzle solver." << endl;
+    cout << "Welcome to rboot005 8 puzzle solver." << endl;
     cout << "Type 1 to use a default puzzle or 2 to enter you own puzzle." << endl;
 
     cin >> user_input;
@@ -480,9 +484,9 @@ int main()
     vector<int> impossible {1,2,3,4,5,6,8,7,0};
 
     vector<int> main_one {1,0,3,4,2,6,7,5,8};
-    /*int alg_choice = 2;
+   /* int alg_choice = 1;
 
-    create_board test(3, main_one);
+    create_board test(3, impossible);
     cout << "before output" << endl;
     find_solution(test, alg_choice);
     cout << "after output" << endl;
